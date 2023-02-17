@@ -1,4 +1,4 @@
-public struct OpenAISolutions {
+public struct OpenAIClient {
     public private(set) var text = "Hello, World!"
 
     public init() {
