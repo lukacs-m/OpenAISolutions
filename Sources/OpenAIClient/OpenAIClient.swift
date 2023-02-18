@@ -1,6 +1,12 @@
-public struct OpenAIClient {
-    public private(set) var text = "Hello, World!"
+import SimpleNetwork
+import Foundation
 
-    public init() {
+public final class OpenAIClient: Sendable {
+    public let openAIApiKey: String
+    public let networkClient: SimpleClient
+    
+    public init(openAIApiKey: String) {
+        self.openAIApiKey = openAIApiKey
+        self.networkClient = SimpleNetworkClient()
     }
 }

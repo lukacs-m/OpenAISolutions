@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/lukacs-m/SimpleNetwork",
       "state" : {
-        "branch" : "main",
-        "revision" : "81c2891490ff9211a23d5458568458e34d0497c1"
+        "revision" : "8654f970fec43cd44b20b3fdea6fa62fef06f76e",
+        "version" : "0.1.0"
       }
     }
   ],
