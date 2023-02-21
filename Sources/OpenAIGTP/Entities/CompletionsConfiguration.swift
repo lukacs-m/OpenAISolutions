@@ -58,11 +58,11 @@ public struct CompletionsConfiguration {
                 presencePenalty: Double = 0,
                 stop: String? = nil) {
         self.model = model
-        self.temperature = temperature
-        self.maxTokens = maxTokens
-        self.topP = topP
-        self.frequencyPenalty = frequencyPenalty
-        self.presencePenalty = presencePenalty
+        self.temperature = (0...2).contains(temperature) ? temperature : 1
+        self.maxTokens = model.contains("davinci") ? (maxTokens > 4000 ? 4000 : maxTokens) : (maxTokens > 2048 ? 2048 : maxTokens)
+        self.topP = (0...1).contains(topP) ? topP : 1
+        self.frequencyPenalty = (-2...2).contains(frequencyPenalty) ? frequencyPenalty : 0
+        self.presencePenalty = (-2...2).contains(presencePenalty) ? presencePenalty : 0
         self.stop = stop
     }
     
@@ -75,7 +75,7 @@ public struct CompletionsConfiguration {
      ```
      */
     static public var `default`: CompletionsConfiguration {
-        CompletionsConfiguration(model: GPTModels.davinci.name)
+        CompletionsConfiguration(model: GPTModels.Completions.davinci.name)
     }
 }
 

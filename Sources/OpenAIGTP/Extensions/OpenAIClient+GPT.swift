@@ -10,11 +10,12 @@ import OpenAIClient
 import SimpleNetwork
 import Combine
 
-enum CompletionsEndpoint {
+enum GPTEndpoint {
     case completion(completionRequest: CompletionRequest, token: String)
+    case edit(editRequest: EditRequest, token: String)
 }
 
-extension CompletionsEndpoint: Endpoint  {
+extension GPTEndpoint: Endpoint  {
     var baseUrl: String? {
         APIConfiguration.baseUrl
     }
@@ -23,12 +24,14 @@ extension CompletionsEndpoint: Endpoint  {
         switch self {
         case .completion:
             return APIConfiguration.EndPoints.completions
+        case .edit:
+            return APIConfiguration.EndPoints.edits
         }
     }
     
     var method: CRUDRequestMethod {
         switch self {
-        case .completion:
+        case .completion, .edit:
             return .post
         }
     }
@@ -36,7 +39,8 @@ extension CompletionsEndpoint: Endpoint  {
     var header: [String: String]? {
         switch self {
         // Access Token to use in Bearer header
-        case .completion(_, let token):
+        case .completion(_, let token),
+                .edit(_, let token):
             return [
                 "Authorization": "Bearer \(token)",
                 "Content-Type": "application/json"
@@ -47,7 +51,9 @@ extension CompletionsEndpoint: Endpoint  {
     var body: [String: Any]? {
         switch self {
         case .completion(let request, _):
-            return request.informations
+            return request.convertToDictionary()
+        case .edit(let request, _):
+            return request.convertToDictionary()
         }
     }
 }
@@ -55,6 +61,7 @@ extension CompletionsEndpoint: Endpoint  {
 /// Protocol for generating text completions using the OpenAI API
 public protocol CompletionServicing {
     
+    // MARK: - Completions
     /// Generates a completion for the given prompt and configuration asynchronously.
     ///
     /// - Parameters:
@@ -74,6 +81,12 @@ public protocol CompletionServicing {
     ///
     /// - Returns: A `AnyPublisher` that emits a ``Completion``  object or an error.
     func completion(with prompt: String, and configuration: CompletionsConfiguration) -> AnyPublisher<Completion, Error>
+    
+    // MARK: - Edits
+    
+    func edit(for input: String, following instruction: String, and configuration: EditsConfiguration) async throws -> Edit
+    func edit(for input: String, following instruction: String, and configuration: EditsConfiguration) -> AnyPublisher<Edit, Error>
+
 }
 
 /// An implementation of ``CompletionServicing``t hat uses the OpenAI API.
@@ -91,7 +104,7 @@ extension OpenAIClient: CompletionServicing {
     public func completion(with prompt: String,
                            and configuration: CompletionsConfiguration = .default) async throws -> Completion {
         try await networkClient.request(endpoint:
-                                CompletionsEndpoint.completion(completionRequest: configuration.toCompletionRequest(with: prompt),
+                                            GPTEndpoint.completion(completionRequest: configuration.toCompletionRequest(with: prompt),
                                                                token: openAIApiKey))
     }
     
@@ -105,6 +118,21 @@ extension OpenAIClient: CompletionServicing {
     public func completion(with prompt: String,
                            and configuration: CompletionsConfiguration = .default) -> AnyPublisher<Completion, Error> {
         let completionRequest = configuration.toCompletionRequest(with: prompt)
-        return networkClient.request(endpoint: CompletionsEndpoint.completion(completionRequest: completionRequest, token: openAIApiKey))
+        return networkClient.request(endpoint: GPTEndpoint.completion(completionRequest: completionRequest,
+                                                                      token: openAIApiKey))
+    }
+    
+    public func edit(for input: String, following instruction: String,
+                     and configuration: EditsConfiguration  = .default) async throws -> Edit {
+        let editRequest = configuration.toEditRequest(with: input, and: instruction)
+        return try await networkClient.request(endpoint: GPTEndpoint.edit(editRequest: editRequest,
+                                                                token: openAIApiKey))
+    }
+    
+    public func edit(for input: String, following instruction: String,
+                     and configuration: EditsConfiguration = .default) -> AnyPublisher<Edit, Error> {
+            let editRequest = configuration.toEditRequest(with: input, and: instruction)
+            return networkClient.request(endpoint: GPTEndpoint.edit(editRequest: editRequest,
+                                                                    token: openAIApiKey))
     }
 }

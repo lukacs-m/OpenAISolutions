@@ -13,5 +13,6 @@ import OpenAIClient
 extension APIConfiguration {
     enum EndPoints {
         static let completions = "/v1/completions"
+        static let edits = "v1/edits"
     }
 }
