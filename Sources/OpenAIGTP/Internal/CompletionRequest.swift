@@ -24,17 +24,4 @@ struct CompletionRequest: Codable {
         case frequencyPenalty = "frequency_penalty"
         case presencePenalty = "presence_penalty"
     }
-    
-    var informations: [String: Any] {
-        [
-            "model": model,
-            "prompt": prompt,
-            "temperature": temperature,
-            "max_tokens": maxTokens,
-            "top_p": topP,
-            "frequency_penalty": frequencyPenalty,
-            "presence_penalty": presencePenalty,
-            "stop": stop as Any
-        ]
-    }
 }
